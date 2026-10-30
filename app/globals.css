@@ -172,6 +172,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero { position: relative; margin: 0; border-radius: 0; min-height: 100vh; min-height: 100svh; overflow: hidden; display: grid; grid-template-rows: auto 1fr; padding: 26px 56px 64px; }
 .hero-globe { position: absolute; top: 47%; left: 71%; width: min(86vh, 820px); aspect-ratio: 1; transform: translate(-50%, -50%); }
 .globe { width: 100%; height: 100%; }
+/* Radar sweep and range rings behind the globe */
+.hero-globe .globe { position: relative; z-index: 1; }
+.hero-sweep { position: absolute; inset: -6%; border-radius: 50%; background: conic-gradient(from 0deg, transparent 0deg, rgba(232, 87, 42, 0.03) 250deg, rgba(232, 87, 42, 0.11) 340deg, rgba(242, 163, 58, 0.16) 359deg, transparent 360deg); -webkit-mask-image: radial-gradient(circle, #000 52%, transparent 71%); mask-image: radial-gradient(circle, #000 52%, transparent 71%); animation: sweep 9s linear infinite; }
+@keyframes sweep { to { transform: rotate(360deg); } }
+.hero-rings i { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(242, 163, 58, 0.09); }
+.hero-rings i:nth-child(2) { inset: -9%; border-style: dashed; border-color: rgba(242, 163, 58, 0.07); animation: sweep 80s linear infinite reverse; }
+.hero-rings i:nth-child(3) { inset: -19%; border-color: rgba(242, 163, 58, 0.045); }
+/* Fine film grain so the dark stage has texture */
+.hero-grain { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+/* Scroll cue */
+.scroll-cue { position: absolute; left: 50%; bottom: 22px; z-index: 3; width: 22px; height: 36px; margin-left: -11px; border: 1px solid rgba(245, 244, 240, 0.25); border-radius: 12px; display: grid; justify-items: center; padding-top: 7px; transition: border-color .2s; }
+.scroll-cue:hover { border-color: var(--text); }
+.scroll-line { width: 2px; height: 7px; border-radius: 2px; background: var(--text); animation: cue 1.8s var(--ease) infinite; }
+@keyframes cue { 0% { opacity: 0; transform: translateY(-3px); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateY(10px); } }
 .globe-canvas { width: 100%; height: 100%; cursor: grab; touch-action: pan-y; }
 .globe-canvas:active { cursor: grabbing; }
 .hero-bottom { position: relative; z-index: 2; align-self: end; display: flex; flex-direction: column; align-items: flex-start; gap: 22px; padding-bottom: 8px; pointer-events: none; }
@@ -578,6 +592,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .hero { padding: 20px 20px 24px; }
   .hero-globe { left: 50%; top: 34%; width: 130vw; }
   .hero-bottom { gap: 18px; }
+  .scroll-cue { display: none; }
       .practice > button { grid-template-columns: 56px 1fr 24px; }
   .p-text { display: none; }
   .p-detail > p { padding-left: 76px; }

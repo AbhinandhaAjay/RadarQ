@@ -38,7 +38,10 @@ export default function Hero({
         </span>
       </header>
 
+      <div className="hero-grain" aria-hidden="true" />
       <div className="hero-globe">
+        <div className="hero-sweep" aria-hidden="true" />
+        <div className="hero-rings" aria-hidden="true"><i /><i /><i /></div>
         <Globe signals={IDLE.slice(0, shown)} label="Globe of live signals from public communities" />
       </div>
 
@@ -60,6 +63,9 @@ export default function Hero({
         </div>
       </div>
 
+      <a className="scroll-cue" href="#brief" aria-label="Scroll down">
+        <span className="scroll-line" />
+      </a>
     </section>
   );
 }
