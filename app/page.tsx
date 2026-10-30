@@ -9,7 +9,7 @@ import { evidenceStrength } from "@/lib/evidence";
 import type { CommandRow } from "@/lib/prompts";
 import JourneyNav from "./components/JourneyNav";
 import Hero from "./components/Hero";
-import { Faq, FooterCard, Overheard, Practices, SourceMarquee } from "./components/HomeSections";
+import { FooterCard, Overheard, Practices, SourceMarquee } from "./components/HomeSections";
 import BriefChat, { WELCOME } from "./components/BriefChat";
 import ScanView, { type ScanStage } from "./components/ScanView";
 import Board from "./components/Board";
@@ -140,7 +140,6 @@ export default function Home() {
   const [pitchBasis, setPitchBasis] = useState(0);
 
   const [toasts, setToasts] = useState<Toast[]>([]);
-  const [scrolled, setScrolled] = useState(false);
   const runId = useRef(0);
 
   const notify = useCallback((msg: string) => {
@@ -169,12 +168,6 @@ export default function Home() {
     const result: View = r.comparison ? "compare" : r.mode === "validate" ? "verdict" : "board";
     setPitchFrom(result);
     setView(r.statements.length ? "pitch" : result);
-  }, []);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   function go(v: View) {
@@ -574,13 +567,14 @@ export default function Home() {
 
   return (
     <>
-      <JourneyNav
-        steps={steps}
-        current={current}
-        scrolled={scrolled}
-        onHome={() => go("home")}
-        onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
-      />
+      {view !== "home" && (
+        <JourneyNav
+          steps={steps}
+          current={current}
+          onHome={() => go("home")}
+          onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
+        />
+      )}
 
       <div className="toasts" aria-live="polite">
         {toasts.map((t) => (
@@ -636,7 +630,6 @@ export default function Home() {
             />
             <Overheard />
             <Practices />
-            <Faq />
             </div>
             <FooterCard
               onStart={() => {

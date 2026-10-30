@@ -9,18 +9,16 @@ export interface JourneyStep {
 export default function JourneyNav({
   steps,
   current,
-  scrolled,
   onGo,
   onHome,
 }: {
   steps: JourneyStep[];
   current: number;
-  scrolled: boolean;
   onGo: (index: number) => void;
   onHome: () => void;
 }) {
   return (
-    <nav className={`nav ${scrolled ? "scrolled" : ""}`}>
+    <nav className="nav">
       <div className="wrap nav-inner">
         <button className="brand" onClick={onHome} aria-label="RadarQ home">
           <RadarMark />

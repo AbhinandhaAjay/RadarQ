@@ -29,7 +29,6 @@ export default function Hero({
       <div className="hero-globe">
         <Globe signals={IDLE.slice(0, shown)} label="Globe of live signals from public communities" />
       </div>
-      <p className="globe-hint">(Drag the globe)</p>
 
       <div className="hero-bottom">
         <h1 className="hero-title" aria-label="Stop guessing. Start listening.">
@@ -38,24 +37,14 @@ export default function Hero({
           <span className="line l3 dim">Start listening.</span>
         </h1>
 
-        <aside className="status-card">
-          <div className="status-top">
-            <span className="eyebrow">Radar status</span>
-            <span className="status-live"><span className="live" /> 4 sources live</span>
-          </div>
-          <p>
-            RadarQ reads what people complain about on Reddit, Hacker News, Bluesky and Stack Exchange, then
-            hands your team a problem worth building, with the quotes to prove it.
-          </p>
-          <div className="status-cta">
-            <button className="btn primary" onClick={onStart}>
-              Start a scan
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </button>
-            <button className="btn ghost" onClick={onValidate}>Validate my idea</button>
-          </div>
+        <div className="hero-cta">
+          <button className="btn primary big" onClick={onStart}>
+            Start a scan
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </button>
+          <button className="btn ghost big" onClick={onValidate}>Validate my idea</button>
           <button className="btn link small" onClick={onExample}>Watch an example run →</button>
-        </aside>
+        </div>
       </div>
     </section>
   );

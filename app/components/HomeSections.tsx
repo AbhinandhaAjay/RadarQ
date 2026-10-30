@@ -113,42 +113,6 @@ export function Practices() {
   );
 }
 
-const FAQ = [
-  { q: "Are the quotes real?", a: "Yes. Every quote is copied from a public post the scan fetched, and links to the original. If the AI paraphrases, the app swaps in the post's own words." },
-  { q: "Where does the data come from?", a: "Public search on Reddit, Hacker News (via Algolia), Bluesky and 17 Stack Exchange sites. Reddit sometimes rate-limits automated searches; when it does, the app says so and uses the other three." },
-  { q: "How is the opportunity score worked out?", a: "Pain and fit for your brief count most, repeated mentions add confidence, and every well-known existing tool lowers it. Scores and competitor names are AI estimates, so treat them as a starting point." },
-  { q: "Do I need an account?", a: "No. It's free and there's no sign-up. Your brief is sent to the AI model only to run the scan, and RadarQ keeps no database; recent scans are remembered in your own browser." },
-  { q: "Can my team see the same results?", a: "Hit Share on the board, verdict or pitch. The link carries the whole result, so teammates open exactly what you see." },
-];
-
-export function Faq() {
-  const [open, setOpen] = useState<number | null>(0);
-  return (
-    <section className="section">
-      <div className="split-head">
-        <h2 className="section-title">Before<br /><em>you scan.</em></h2>
-        <div>
-          <span className="eyebrow">Questions</span>
-          <p className="lede">What judges and teammates usually ask first.</p>
-        </div>
-      </div>
-      <dl className="faq">
-        {FAQ.map((f, i) => (
-          <div key={f.q} className={`faq-item ${open === i ? "open" : ""}`}>
-            <dt>
-              <button onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
-                {f.q}
-                <span className="p-plus" aria-hidden="true">{open === i ? "−" : "+"}</span>
-              </button>
-            </dt>
-            <dd><p>{f.a}</p></dd>
-          </div>
-        ))}
-      </dl>
-    </section>
-  );
-}
-
 export function FooterCard({ onStart }: { onStart: () => void }) {
   return (
     <footer className="footer-card ember-stage">
