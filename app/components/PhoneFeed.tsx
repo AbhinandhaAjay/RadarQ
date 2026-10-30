@@ -60,7 +60,7 @@ export default function PhoneFeed() {
               {posts.map((p, i) => (
                 <article key={i} className="fp">
                   <div className="fp-head">
-                    <span className={`fp-av ${p.source}`} />
+                    <span className={`fp-av ${p.source}`}><svg viewBox="0 0 24 24"><path d="M6 6h12v8h-7l-4 4v-4H6z" /></svg></span>
                     <span className="fp-who">
                       <b>{p.where}</b>
                       <small>{SOURCE_LABELS[p.source]} · {p.tag}</small>

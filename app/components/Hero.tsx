@@ -11,10 +11,27 @@ const Check = () => (
 const STEPS = ["Group posts into issues", "Score pain, fit and competition", "Argue against the top pick", "Write the pitch and build plan"];
 const CHECKS = ["Real quotes, linked to the post", "Evidence strength scored", "Open gaps vs crowded spaces"];
 
+// Curved wires from each card to the phone, in the phone's own 330 x 680 box.
+const WIRES = [
+  { cls: "w1", from: [-28, 66], to: [10, 170], d: "M-28 66 C -4 66, -14 170, 10 170" },
+  { cls: "w2", from: [358, 62], to: [320, 160], d: "M358 62 C 334 62, 344 160, 320 160" },
+  { cls: "w3", from: [372, 296], to: [320, 340], d: "M372 296 C 346 296, 346 340, 320 340" },
+  { cls: "w4", from: [356, 512], to: [320, 540], d: "M356 512 C 336 512, 340 540, 320 540" },
+];
+
 /** Cards wired to the phone that show what RadarQ does with the posts on screen. */
 function Callouts() {
   return (
     <div className="callouts" aria-hidden="true">
+      <svg className="wires" viewBox="0 0 330 680">
+        {WIRES.map((w) => (
+          <g key={w.cls} className={w.cls}>
+            <path d={w.d} />
+            <circle cx={w.from[0]} cy={w.from[1]} r="3.5" />
+            <circle className="node" cx={w.to[0]} cy={w.to[1]} r="4.5" />
+          </g>
+        ))}
+      </svg>
       <div className="co co-l co1">
         <span className="co-ico">
           <svg viewBox="0 0 24 24"><path d="M5 5h14v10H9l-4 4z" /></svg>
@@ -80,7 +97,9 @@ export default function Hero({
       </header>
 
       <div className="hero-grain" aria-hidden="true" />
+      <div className="hero-floor" aria-hidden="true" />
       <div className="hero-phone" ref={tilt}>
+        <div className="hero-arcs" aria-hidden="true"><i /><i /><i /></div>
         <div className="hero-phone-float">
           <PhoneFeed />
         </div>
