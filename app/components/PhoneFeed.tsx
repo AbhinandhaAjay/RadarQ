@@ -1,4 +1,5 @@
 import { OVERHEARD } from "./HomeSections";
+import { RadarMark } from "./Radar";
 import { SOURCE_LABELS } from "@/lib/types";
 
 // The phrase in each real post that names the pain, highlighted like a reader would.
@@ -48,8 +49,8 @@ export default function PhoneFeed() {
             <span className="ps-icons"><i /><i /><i /></span>
           </div>
           <div className="ps-bar">
-            <b>Discussions</b>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6" /><path d="M20 20l-4.5-4.5" /></svg>
+            <span className="ps-brand"><RadarMark /><b>RadarQ</b></span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h14" /></svg>
           </div>
           <div className="ps-tabs">
             {TABS.map((t, i) => <span key={t} className={i === 0 ? "on" : ""}>{t}</span>)}
