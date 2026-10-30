@@ -172,14 +172,17 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero { position: relative; margin: 0; border-radius: 0; min-height: 100vh; min-height: 100svh; overflow: hidden; display: grid; grid-template-rows: auto 1fr; padding: 26px 56px 64px; }
 .globe { width: 100%; height: 100%; }
 /* 3D phone showing a community feed */
-.hero-phone { position: absolute; top: 51%; left: 64%; z-index: 1; perspective: 1800px; transform: translate(-50%, -50%); --rx: 0deg; --ry: 0deg; }
+.hero-phone { position: absolute; top: 50%; left: 64%; z-index: 1; perspective: 1800px; transform: translate(-50%, -50%); --rx: 0deg; --ry: 0deg; }
 .hero-phone::before { content: ""; position: absolute; inset: -30% -60%; z-index: -1; background: radial-gradient(closest-side, rgba(232, 87, 42, 0.34), rgba(232, 87, 42, 0.08) 55%, transparent 75%); filter: blur(10px); }
 .hero-phone-float { animation: phoneIn 1.2s .2s var(--ease) both, phoneFloat 8s 1.4s ease-in-out infinite; }
 /* Size the phone to the window height so it is never cropped */
-@media (min-height: 980px) { .hero-phone { scale: 1.12; } }
-@media (max-height: 820px) { .hero-phone { scale: .9; } }
-@media (max-height: 720px) { .hero-phone { scale: .78; } }
-@media (max-height: 620px) { .hero-phone { scale: .66; } }
+/* Scale the inner layers, not .hero-phone itself, so its centring translate is not scaled too */
+.hero-phone-float, .callouts { scale: var(--ps, 1); }
+@media (min-height: 1000px) { .hero-phone { --ps: 1.1; } }
+@media (max-height: 900px) { .hero-phone { --ps: .9; } }
+@media (max-height: 820px) { .hero-phone { --ps: .8; } }
+@media (max-height: 740px) { .hero-phone { --ps: .72; } }
+@media (max-height: 660px) { .hero-phone { --ps: .64; } }
 @keyframes phoneIn { from { opacity: 0; transform: translateY(60px) scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes phoneFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
 .phone { position: relative; width: 300px; height: 612px; transform-style: preserve-3d; transform: rotateY(calc(-16deg + var(--ry))) rotateX(calc(4deg + var(--rx))) rotateZ(-1.5deg); transition: transform .5s cubic-bezier(.2, .7, .2, 1); }
@@ -228,7 +231,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
 .co li { display: flex; align-items: center; gap: 8px; color: var(--text-2); }
 .co li svg { flex: none; width: 16px; height: 16px; fill: none; stroke: var(--ember); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-.co1 { display: flex; gap: 11px; align-items: flex-start; width: 214px; right: calc(100% + 28px); top: 70px; animation-delay: 1.1s; }
+.co1 { display: flex; gap: 11px; align-items: flex-start; width: 214px; right: calc(100% + 26px); top: 14px; animation-delay: 1.1s; }
 .co2 { left: calc(100% + 30px); top: 6px; animation-delay: 1.4s; }
 .co3 { left: calc(100% + 48px); top: 216px; animation-delay: 1.7s; }
 .co4 { left: calc(100% + 26px); top: 392px; animation-delay: 2s; }
@@ -242,7 +245,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .co1 { --wire: 32px; } .co2 { --wire: 40px; } .co3 { --wire: 58px; } .co4 { --wire: 36px; }
 @keyframes coIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes node { 50% { box-shadow: 0 0 0 7px rgba(232, 87, 42, 0.08), 0 0 20px rgba(232, 87, 42, 0.9); } }
-@media (max-width: 1400px) { .co1 { display: none; } }
+@media (max-width: 1400px), (max-height: 700px) { .co1 { display: none; } }
 @media (max-width: 1100px) { .callouts { display: none; } }
 
 /* Fine film grain so the dark stage has texture */
@@ -658,7 +661,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .hero { padding: 20px 20px 24px; }
   .hero-bottom { gap: 18px; }
   .hero { grid-template-rows: auto auto auto; }
-  .hero-phone { position: relative; top: auto; left: auto; transform: none; justify-self: center; height: 430px; margin: 10px 0 6px; }
+  .hero-phone { --ps: 1; position: relative; top: auto; left: auto; transform: none; justify-self: center; height: 430px; margin: 10px 0 6px; }
   .hero-phone-float { transform-origin: top center; }
   .phone { transform: scale(.68) rotateY(-16deg) rotateX(6deg) rotateZ(3deg); transform-origin: top center; }
   .scroll-cue { display: none; }
