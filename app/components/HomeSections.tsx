@@ -30,7 +30,7 @@ export function SourceMarquee() {
 }
 
 // Real complaints the scanner surfaced while testing, with their original posts.
-const OVERHEARD = [
+export const OVERHEARD = [
   {
     source: "bluesky" as SourceId,
     where: "Bluesky",
@@ -56,7 +56,7 @@ const OVERHEARD = [
 
 export function Overheard() {
   return (
-    <section className="section">
+    <section className="section" id="overheard">
       <div className="split-head">
         <h2 className="section-title">Problems<br /><em>people raise.</em></h2>
         <div>
