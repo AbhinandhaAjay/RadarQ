@@ -1,13 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Globe from "./Globe";
+import { useRef } from "react";
+import PhoneFeed from "./PhoneFeed";
 import { RadarMark } from "./Radar";
-import type { Signal } from "./SignalGlobe";
-import type { SourceId } from "@/lib/types";
-
-const SOURCES: SourceId[] = ["reddit", "hackernews", "bluesky", "stackexchange"];
-const IDLE: Signal[] = Array.from({ length: 26 }, (_, i) => ({ id: `idle-${i * 13}`, source: SOURCES[i % 4] }));
 
 export default function Hero({
   onStart,
@@ -18,15 +13,19 @@ export default function Hero({
   onValidate: () => void;
   onExample: () => void;
 }) {
-  // Signals light up one at a time so the globe feels like it's listening.
-  const [shown, setShown] = useState(6);
-  useEffect(() => {
-    const t = setInterval(() => setShown((n) => (n >= IDLE.length ? 6 : n + 1)), 650);
-    return () => clearInterval(t);
-  }, []);
+  // The phone leans gently toward the pointer.
+  const tilt = useRef<HTMLDivElement>(null);
+  function onMove(e: React.PointerEvent) {
+    if (e.pointerType !== "mouse" || !tilt.current) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    tilt.current.style.setProperty("--ry", `${x * 16}deg`);
+    tilt.current.style.setProperty("--rx", `${-y * 10}deg`);
+  }
 
   return (
-    <section className="hero ember-stage">
+    <section className="hero ember-stage" onPointerMove={onMove}>
       <header className="hero-top">
         <span className="brand">
           <RadarMark />
@@ -39,10 +38,10 @@ export default function Hero({
       </header>
 
       <div className="hero-grain" aria-hidden="true" />
-      <div className="hero-globe">
-        <div className="hero-sweep" aria-hidden="true" />
-        <div className="hero-rings" aria-hidden="true"><i /><i /><i /></div>
-        <Globe signals={IDLE.slice(0, shown)} label="Globe of live signals from public communities" />
+      <div className="hero-phone" ref={tilt}>
+        <div className="hero-phone-float">
+          <PhoneFeed />
+        </div>
       </div>
 
       <div className="hero-bottom">
