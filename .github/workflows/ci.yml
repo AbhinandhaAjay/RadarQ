@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Type-check, build and smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build   # also generates next-env.d.ts, which the type-check needs
+      - run: npm run typecheck
+      - name: Start the app and load the home page
+        run: |
+          npm start -- -p 3000 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3000 | grep -q "RadarQ"; then echo "Home page OK"; exit 0; fi
+            sleep 1
+          done
+          echo "Home page did not load"; exit 1
