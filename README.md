@@ -82,6 +82,6 @@ Stack: Next.js 15, React 19, TypeScript, Groq (gpt-oss), Three.js, dnd-kit. Post
 
 ---
 
-Built by Abhinandha K for [No Hands: The Wispr Challenge](https://www.wemakedevs.org/wispr) (WeMakeDevs × Wispr Flow), No-Code track. This is an independent project, not a Wispr product.
+Built for [No Hands: The Wispr Challenge](https://www.wemakedevs.org/wispr) (WeMakeDevs × Wispr Flow), No-Code track. 
 
-**Built hands-free, too.** I found the challenge on 30 October and built RadarQ in two days by dictating to Claude Code with Wispr Flow.
+**Built hands-free, too.** I found the challenge on 30 October and built RadarQ in two days with Wispr Flow.
