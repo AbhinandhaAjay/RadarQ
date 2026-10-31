@@ -209,7 +209,7 @@ export default function Board({
             </ul>
           )}
           <div className="short-foot">
-            <CountControl label="Statements" value={statementCount} onChange={setStatementCount} min={1} max={6} autoStart={3} />
+            <CountControl label="Statements" value={statementCount} onChange={setStatementCount} min={1} max={6} autoStart={Math.min(6, Math.max(1, selected.size))} />
             {picked.length === 2 && (
               <button className="btn" onClick={() => onCompare([picked[0].id, picked[1].id])}>
                 Compare these two
