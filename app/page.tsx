@@ -669,6 +669,7 @@ export default function Home() {
         current={current}
         onHome={() => go("home")}
         onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
+        onDemo={playDemo}
         dictation={sessionDictation}
       />
 
@@ -732,7 +733,6 @@ export default function Home() {
               recent={recent}
               onLaunch={launch}
               notify={notify}
-              onDemo={playDemo}
               dictation={briefDictation}
               onDictated={(d) => {
                 setBriefDictation((b) => addDictation(b, d));

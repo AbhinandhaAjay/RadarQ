@@ -31,7 +31,7 @@ export default function StatementCard({
           <WisprBadge d={dictation} prefix="Brief dictated with Wispr" />
           <h3>{s.name || s.title}</h3>
           {s.pitch && <p className="pitch">“{s.pitch}”</p>}
-          {s.name && <p className="title">{s.title}</p>}
+          {s.name && s.title && s.title !== s.name && <p className="title">{s.title}</p>}
         </div>
         <button className="btn small no-print" onClick={onCopy}>Copy</button>
       </div>

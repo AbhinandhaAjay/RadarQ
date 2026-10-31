@@ -94,7 +94,6 @@ export default function BriefChat({
   recent,
   onLaunch,
   notify,
-  onDemo,
   dictation,
   onDictated,
 }: {
@@ -111,7 +110,6 @@ export default function BriefChat({
   recent: RecentSearch[];
   onLaunch: (brief: Constraints, mode: Mode) => void;
   notify: (msg: string) => void;
-  onDemo: () => void;
   /** Everything dictated into this brief so far. */
   dictation: Dictation;
   onDictated: (d: Dictation) => void;
@@ -224,7 +222,6 @@ export default function BriefChat({
           <button role="tab" aria-selected={mode === "validate"} className={mode === "validate" ? "on" : ""} onClick={() => setMode("validate")}>Validate my idea</button>
           <button role="tab" aria-selected={mode === "compare"} className={mode === "compare" ? "on" : ""} onClick={() => setMode("compare")}>Compare two ideas</button>
         </div>
-        <button className="btn small brief-example" onClick={onDemo}>▶ Play the demo</button>
       </div>
 
       <div className="brief">

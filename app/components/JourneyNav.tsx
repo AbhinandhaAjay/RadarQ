@@ -1,5 +1,6 @@
 import type { Dictation } from "@/lib/types";
 import { RadarMark } from "./Radar";
+import { isWispr } from "@/lib/wispr";
 import WisprBadge from "./WisprBadge";
 
 export interface JourneyStep {
@@ -13,12 +14,14 @@ export default function JourneyNav({
   current,
   onGo,
   onHome,
+  onDemo,
   dictation,
 }: {
   steps: JourneyStep[];
   current: number;
   onGo: (index: number) => void;
   onHome: () => void;
+  onDemo: () => void;
   /** Everything dictated with Wispr Flow in this visit, measured from real input bursts. */
   dictation?: Dictation;
 }) {
@@ -29,9 +32,7 @@ export default function JourneyNav({
           <RadarMark />
           <span>RadarQ</span>
         </button>
-        <span className="nav-wispr" aria-live="polite">
-          <WisprBadge d={dictation} prefix="Dictated this session" />
-        </span>
+        <span className="nav-sep" aria-hidden="true" />
         <ol className="journey" aria-label="Progress">
           {steps.map((s, i) => {
             const state = i === current ? "now" : i < current ? "past" : s.enabled ? "ahead" : "locked";
@@ -56,6 +57,15 @@ export default function JourneyNav({
             );
           })}
         </ol>
+        <span className="nav-sep" aria-hidden="true" />
+        {isWispr(dictation) && (
+          <span className="nav-wispr" aria-live="polite">
+            <WisprBadge d={dictation} prefix="Dictated" />
+          </span>
+        )}
+        <button className="nav-demo" onClick={onDemo} title="Replay a saved real run, no typing needed" aria-label="Play demo">
+          <span aria-hidden="true">▶</span> <span className="nav-demo-label">Play demo</span>
+        </button>
       </div>
     </nav>
   );
