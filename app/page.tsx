@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChatMessage, CommandAction, Comparison, Constraints, Contender, DevilReport, Issue, Mode, Post, SourceId, SourceStatus, Statement, Validation } from "@/lib/types";
+import type { ChatMessage, CommandAction, Comparison, Constraints, Contender, DevilReport, Dictation, Issue, Mode, Post, Pulled, SourceId, SourceStatus, Statement, Validation } from "@/lib/types";
 import { EMPTY_CONSTRAINTS, SOURCE_LABELS } from "@/lib/types";
 import { briefLabel, interleave, loadRecent, post, saveRecent, toMarkdown, type RecentSearch } from "@/lib/client";
 import { decodeShare, encodeShare } from "@/lib/share";
 import { evidenceStrength } from "@/lib/evidence";
 import type { CommandRow } from "@/lib/prompts";
+import { addDictation, NO_DICTATION } from "@/lib/wispr";
+import { draftStatements, friendlyError, localCommand } from "@/lib/fallback";
+import WisprBadge from "./components/WisprBadge";
 import JourneyNav from "./components/JourneyNav";
 import { FooterCard, Overheard, Practices, SourceMarquee } from "./components/HomeSections";
 import BriefChat, { WELCOME } from "./components/BriefChat";
@@ -27,18 +30,19 @@ type DrawerState = { kind: "issue"; id: string } | { kind: "evidence" } | null;
 
 const SOURCES: SourceId[] = ["reddit", "hackernews", "bluesky", "stackexchange"];
 
-const EXAMPLE: Constraints = {
-  ...EMPTY_CONSTRAINTS,
-  name: "Smart India Hackathon",
-  theme: "Healthcare access for small clinics and their patients",
-  track: "HealthTech",
-  timeAvailable: "36 hours",
-  teamSize: "4",
-  canCode: "Yes, comfortably",
-  techStack: "React, Firebase",
-  judging: "Social impact, working demo, innovation",
-  notes: "Focus on India",
-};
+/** A real run recorded from the live APIs, replayed by "Play the demo" and offered when a live scan fails. */
+interface DemoRun {
+  ramble: string;
+  brief: Constraints;
+  pulled: Pulled[];
+  reply: string;
+  queries: string[];
+  status: Partial<Record<SourceId, SourceStatus>>;
+  posts: Post[];
+  issues: Issue[];
+  shortlist: string[];
+  statements: Statement[];
+}
 
 /** Validator pain points become issue-shaped input for the statements route. */
 function issuesFromValidation(v: Validation): Issue[] {
@@ -138,6 +142,14 @@ export default function Home() {
   const [generating, setGenerating] = useState(false);
   const [pitchBasis, setPitchBasis] = useState(0);
 
+  // Wispr: how the brief arrived, and the snapshot taken when it was scanned.
+  const [briefDictation, setBriefDictation] = useState<Dictation>(NO_DICTATION);
+  const [sessionDictation, setSessionDictation] = useState<Dictation>(NO_DICTATION);
+  const [searchedDictation, setSearchedDictation] = useState<Dictation | null>(null);
+  const [offlinePitch, setOfflinePitch] = useState(false);
+  const [demo, setDemo] = useState<"playing" | "done" | null>(null);
+  const demoRun = useRef<DemoRun | null>(null);
+
   const [toasts, setToasts] = useState<Toast[]>([]);
   const runId = useRef(0);
 
@@ -163,6 +175,7 @@ export default function Home() {
     setValidation(r.validation);
     setStatements(r.statements);
     setComparison(r.comparison);
+    setSearchedDictation(r.dictation ?? null);
     setCompareFrom(r.mode === "compare" ? "brief" : "board");
     const result: View = r.comparison ? "compare" : r.mode === "validate" ? "verdict" : "board";
     setPitchFrom(result);
@@ -195,17 +208,11 @@ export default function Home() {
     goBrief();
   }
 
-  async function launch(b: Constraints, m: Mode) {
-    const id = ++runId.current;
+  function clearResults() {
     if (shared) {
       history.replaceState(null, "", window.location.pathname);
       setShared(false);
     }
-    setModeState(m);
-    setBrief(b);
-    setSearched(b);
-    setSearchedMode(m);
-    if (m === "find") setRecent(saveRecent(b));
     setError("");
     setQueries([]);
     setPosts([]);
@@ -217,8 +224,21 @@ export default function Home() {
     setBoardView("board");
     setSelected(new Set());
     setStatements([]);
+    setOfflinePitch(false);
     setDrawer(null);
     setStage("plan");
+  }
+
+  async function launch(b: Constraints, m: Mode) {
+    const id = ++runId.current;
+    clearResults();
+    setDemo(null);
+    setModeState(m);
+    setBrief(b);
+    setSearched(b);
+    setSearchedMode(m);
+    setSearchedDictation(briefDictation);
+    if (m === "find") setRecent(saveRecent(b));
     go("scan");
 
     try {
@@ -272,9 +292,75 @@ export default function Home() {
       }
     } catch (err) {
       if (id !== runId.current) return;
-      setError((err as Error).message);
+      setError(friendlyError(err));
       goBrief();
     }
+  }
+
+  async function loadDemo(): Promise<DemoRun> {
+    demoRun.current ??= (await import("@/lib/demo-run.json")).default as unknown as DemoRun;
+    return demoRun.current;
+  }
+
+  /**
+   * Replays the saved run on its own: a (simulated) Wispr ramble fills the brief,
+   * posts stream in, the board appears, the top issues are shortlisted, and the pitch opens.
+   */
+  async function playDemo() {
+    const id = ++runId.current;
+    const d = await loadDemo();
+    const wait = (ms: number) => new Promise<boolean>((r) => setTimeout(() => r(id === runId.current), ms));
+    const dictated: Dictation = { chars: d.ramble.length, bursts: 1, keys: 0, simulated: true };
+
+    clearResults();
+    setDemo("playing");
+    setModeState("find");
+    setBrief(EMPTY_CONSTRAINTS);
+    setMessages([WELCOME.find]);
+    goBrief();
+    if (!(await wait(900))) return;
+    setMessages([WELCOME.find, { role: "user", content: d.ramble, dictation: dictated }]);
+    if (!(await wait(1500))) return;
+    setBrief(d.brief);
+    setBriefDictation(dictated);
+    setMessages([WELCOME.find, { role: "user", content: d.ramble, dictation: dictated }, { role: "assistant", content: d.reply, pulled: d.pulled }]);
+    if (!(await wait(3800))) return;
+
+    setSearched(d.brief);
+    setSearchedMode("find");
+    setSearchedDictation(dictated);
+    go("scan");
+    if (!(await wait(900))) return;
+    setQueries(d.queries);
+    setStage("fetch");
+    for (const source of SOURCES) {
+      if (!(await wait(600))) return;
+      setPosts((p) => [...p, ...d.posts.filter((x) => x.source === source)]);
+      setStatus((s) => ({ ...s, [source]: d.status[source] ?? { source, ok: true, count: 0 } }));
+    }
+    setStage("analyze");
+    if (!(await wait(1500))) return;
+    setIssues(d.issues);
+    go("board");
+    if (!(await wait(3000))) return;
+    setSelected(new Set(d.shortlist));
+    notify(`Shortlisted the top ${d.shortlist.length} issues`);
+    if (!(await wait(1800))) return;
+    setPitchFrom("board");
+    setPitchBasis(d.shortlist.length);
+    setStatements(d.statements);
+    go("pitch");
+    setDemo("done");
+  }
+
+  function stopDemo(restart: boolean) {
+    runId.current++;
+    setDemo(null);
+    if (!restart) return;
+    setBrief(EMPTY_CONSTRAINTS);
+    setBriefDictation(NO_DICTATION);
+    setMessages([WELCOME[mode]]);
+    goBrief();
   }
 
   /** Scan both ideas side by side, then let the AI weigh them. */
@@ -395,14 +481,17 @@ export default function Home() {
     setPitchBasis(chosen.length);
     setGenerating(true);
     setStatements([]);
+    setOfflinePitch(false);
     setDrawer(null);
     go("pitch");
     try {
       const res = await post<{ statements: Statement[] }>("/api/statements", { constraints: searched, issues: chosen, statementCount });
       setStatements(res.statements);
-    } catch (err) {
-      notify(`Couldn't write the pitch: ${(err as Error).message}`);
-      go(from);
+    } catch {
+      // The quotes are already on hand, so a plain pitch can be drafted from them.
+      setStatements(draftStatements(searched, chosen));
+      setOfflinePitch(true);
+      notify("The AI is busy, so these pitch sheets were drafted straight from the evidence. Press Rewrite to try again.");
     } finally {
       setGenerating(false);
     }
@@ -426,12 +515,12 @@ export default function Home() {
   }
 
   function share() {
-    const link = encodeShare({ mode: searchedMode, brief: searched, queries, status, posts, issues, statements, validation, comparison });
+    const link = encodeShare({ mode: searchedMode, brief: searched, queries, status, posts, issues, statements, validation, comparison, dictation: searchedDictation });
     copy(link, "Share link copied. Anyone with it sees these results.");
   }
 
   function download() {
-    const blob = new Blob([toMarkdown(searched, statements)], { type: "text/markdown" });
+    const blob = new Blob([toMarkdown(searched, statements, searchedDictation)], { type: "text/markdown" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -546,7 +635,16 @@ export default function Home() {
     ]
       .filter(Boolean)
       .join(", ");
-    const res = await post<{ reply: string; actions: CommandAction[] }>("/api/command", { command, rows, filters });
+    let res: { reply: string; actions: CommandAction[] };
+    try {
+      res = await post<{ reply: string; actions: CommandAction[] }>("/api/command", { command, rows, filters });
+    } catch {
+      const local = localCommand(command, rows);
+      if (!local) {
+        throw new Error("The AI is busy right now. Offline I can still do: “show only open gaps”, “sort by pain”, “compare the top two”, “shortlist the top 3”, “argue against #1”.");
+      }
+      res = { reply: `${local.reply} (offline)`, actions: local.actions };
+    }
     runActions(res.actions);
     return res.reply;
   }
@@ -571,6 +669,7 @@ export default function Home() {
         current={current}
         onHome={() => go("home")}
         onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
+        dictation={sessionDictation}
       />
 
       <div className="toasts" aria-live="polite">
@@ -578,6 +677,23 @@ export default function Home() {
           <div key={t.id} className="toast">{t.msg}</div>
         ))}
       </div>
+
+      {demo && !shared && (
+        <div className="shared-banner demo-banner">
+          <div className="wrap">
+            <span>
+              <span className="hand">{demo === "playing" ? "demo playing" : "that was the demo"}</span>
+              {demo === "playing"
+                ? "A saved run: a simulated Wispr ramble, then real posts and real AI output. It moves on its own."
+                : "Everything here came from a saved run. Ramble your own brief to scan live."}
+            </span>
+            <span className="chips">
+              {demo === "playing" && <button className="btn small" onClick={() => stopDemo(false)}>Stop here</button>}
+              <button className="btn small primary" onClick={() => stopDemo(true)}>Ramble your own</button>
+            </span>
+          </div>
+        </div>
+      )}
 
       {shared && (
         <div className="shared-banner">
@@ -588,14 +704,18 @@ export default function Home() {
         </div>
       )}
 
-      <main className={`app-main ${view === "home" ? "is-home" : ""} ${shared ? "has-banner" : ""}`}>
+      <main className={`app-main ${view === "home" ? "is-home" : ""} ${shared || demo ? "has-banner" : ""}`}>
         {view === "home" && (
           <div className="view" key="home">
             <div className="wrap">
             {error && (
               <div className="error" role="alert">
                 <span>{error}</span>
-                <button className="btn small" onClick={() => setError("")}>Dismiss</button>
+                <span className="chips">
+                  <button className="btn small primary" onClick={playDemo}>▶ Show a saved run instead</button>
+                  <button className="btn small" onClick={() => launch(searched, searchedMode)}>Try again</button>
+                  <button className="btn small" onClick={() => setError("")}>Dismiss</button>
+                </span>
               </div>
             )}
             <BriefChat
@@ -612,7 +732,12 @@ export default function Home() {
               recent={recent}
               onLaunch={launch}
               notify={notify}
-              onExample={() => launch(EXAMPLE, "find")}
+              onDemo={playDemo}
+              dictation={briefDictation}
+              onDictated={(d) => {
+                setBriefDictation((b) => addDictation(b, d));
+                setSessionDictation((s) => addDictation(s, d));
+              }}
             />
             <SourceMarquee />
             <Overheard />
@@ -656,7 +781,7 @@ export default function Home() {
               </div>
             </header>
 
-            <CommandBar onRun={runCommand} />
+            <CommandBar onRun={runCommand} onDictated={(d) => setSessionDictation((s) => addDictation(s, d))} />
 
             <div className="toolbar">
               {(openGapOnly || maxTools !== null || minPain > 1 || text || hidden.size > 0) && (
@@ -787,11 +912,12 @@ export default function Home() {
                     ? `Built from ${pitchBasis} ${pitchFrom === "compare" ? "winning idea" : pitchFrom === "verdict" ? "validated pain point" : "shortlisted issue"}${pitchBasis === 1 ? "" : "s"}, each backed by real posts.`
                     : "Every pitch is grounded in quotes from real public posts."}
                 </p>
+                <WisprBadge d={searchedDictation} prefix="Brief dictated with Wispr" />
               </div>
               <div className="chips no-print">
                 <button className="btn small link" onClick={() => go(pitchFrom)}>← Back</button>
                 <button className="btn small" disabled={generating || shared} onClick={() => generate({ from: pitchFrom })}>Rewrite</button>
-                <button className="btn small" disabled={generating || !statements.length} onClick={() => copy(toMarkdown(searched, statements), "Copied every pitch")}>Copy all</button>
+                <button className="btn small" disabled={generating || !statements.length} onClick={() => copy(toMarkdown(searched, statements, searchedDictation), "Copied every pitch")}>Copy all</button>
                 <button className="btn small" disabled={generating || !statements.length} onClick={download}>Download .md</button>
                 <button className="btn small" disabled={generating || !statements.length} onClick={share}>Share</button>
                 <button className="btn small primary" disabled={generating || !statements.length} onClick={() => window.print()}>Save as PDF</button>
@@ -808,7 +934,14 @@ export default function Home() {
                     </div>
                   ))
                 : statements.map((s, i) => (
-                    <StatementCard key={i} s={s} index={i} onCopy={() => copy(toMarkdown(searched, [s]), `Copied “${s.name || s.title}”`)} />
+                    <StatementCard
+                      key={i}
+                      s={s}
+                      index={i}
+                      dictation={searchedDictation}
+                      offline={offlinePitch}
+                      onCopy={() => copy(toMarkdown(searched, [s], searchedDictation), `Copied “${s.name || s.title}”`)}
+                    />
                   ))}
             </section>
           </div>

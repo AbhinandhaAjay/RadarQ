@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import type { Statement } from "@/lib/types";
+import type { Dictation, Statement } from "@/lib/types";
+import WisprBadge from "./WisprBadge";
 
 const TABS = ["Overview", "Evidence", "Build plan"] as const;
 
@@ -9,10 +10,16 @@ export default function StatementCard({
   s,
   index,
   onCopy,
+  dictation,
+  offline,
 }: {
   s: Statement;
   index: number;
   onCopy: () => void;
+  /** How the brief behind this pitch arrived. */
+  dictation?: Dictation | null;
+  /** Drafted from the evidence without the AI. */
+  offline?: boolean;
 }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
 
@@ -20,7 +27,8 @@ export default function StatementCard({
     <article className="stmt" style={{ animationDelay: `${index * 0.08}s` }}>
       <div className="stmt-top">
         <div>
-          <div className="mono-label">Pitch sheet {String(index + 1).padStart(2, "0")}</div>
+          <div className="mono-label">Pitch sheet {String(index + 1).padStart(2, "0")}{offline && " · drafted offline from the evidence"}</div>
+          <WisprBadge d={dictation} prefix="Brief dictated with Wispr" />
           <h3>{s.name || s.title}</h3>
           {s.pitch && <p className="pitch">“{s.pitch}”</p>}
           {s.name && <p className="title">{s.title}</p>}

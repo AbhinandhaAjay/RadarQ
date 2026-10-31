@@ -1,7 +1,8 @@
 // Browser-side helpers shared by the UI components.
 
-import type { Constraints, Post, SourceId, Statement } from "./types";
+import type { Constraints, Dictation, Post, SourceId, Statement } from "./types";
 import { isEmptyConstraints } from "./types";
+import { dictationLabel, isWispr } from "./wispr";
 
 export async function post<T>(url: string, body: unknown): Promise<T> {
   const send = () =>
@@ -52,8 +53,11 @@ export function briefLabel(c: Constraints): string {
   return c.name || c.theme || c.track || "Custom search";
 }
 
-export function toMarkdown(c: Constraints, statements: Statement[]): string {
-  const head = `# Problem statements${c.name ? ` for ${c.name}` : ""}\n${c.theme ? `\nTheme: ${c.theme}\n` : ""}`;
+export function toMarkdown(c: Constraints, statements: Statement[], dictation?: Dictation | null): string {
+  const voice = isWispr(dictation)
+    ? `\n_Brief ${dictation.simulated ? "replayed from a saved Wispr Flow dictation" : "dictated with Wispr Flow"}: ${dictationLabel(dictation)}_\n`
+    : "";
+  const head = `# Problem statements${c.name ? ` for ${c.name}` : ""}\n${c.theme ? `\nTheme: ${c.theme}\n` : ""}${voice}`;
   const body = statements
     .map(
       (s, i) => `## ${i + 1}. ${s.name ? `${s.name}: ` : ""}${s.title}

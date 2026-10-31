@@ -54,6 +54,29 @@ export function briefUser(messages: ChatMessage[], current: Constraints, pageTex
   return `Current brief:\n${JSON.stringify(current)}\n\nConversation:\n${convo}${page}`;
 }
 
+// ---------- Ramble: one long dictation becomes the brief ----------
+
+export function rambleSystem(mode: Mode): string {
+  const focus =
+    mode === "validate"
+      ? "Also fill idea with the single idea they seem most excited about, in one or two clear sentences."
+      : mode === "compare"
+        ? "If they mention two ideas, put the first in idea and the second in ideaB, one or two clear sentences each."
+        : "Leave idea and ideaB empty. Turn their interests into a theme that a search can use, e.g. \"Mental health for college students\".";
+  return `You are RadarQ's intake assistant. The user held their Wispr Flow key and rambled for up to a minute about their interests, skills, frustrations and their hackathon. The text is messy dictation: filler words, restarts, Hinglish, half-sentences. Your job is to turn it into a clean brief.
+${focus}
+Brief fields: idea, ideaB, name (hackathon name), theme, track, timeAvailable, teamSize, canCode (can they code, or no-code only), techStack (tools they mentioned knowing), judging (what judges care about), notes (audience, region, interests and skills worth remembering).
+Rules:
+- Merge into the current brief. Only fill what the user said or clearly implied. Never invent a hackathon name, time or team size.
+- pulled: for each field you filled, the exact words from the dictation that it came from (copy them verbatim, at most 14 words, including filler) and the clean value you wrote. Order them as they appear in the dictation.
+- reply: 1 to 2 short, friendly, plain sentences. No emoji. Say what you understood and the single most useful thing still missing, or that they can start the scan.
+Return JSON: {"brief": {"idea": string, "ideaB": string, "name": string, "theme": string, "track": string, "timeAvailable": string, "teamSize": string, "canCode": string, "techStack": string, "judging": string, "notes": string}, "pulled": [{"field": string, "said": string, "became": string}], "reply": string}`;
+}
+
+export function rambleUser(text: string, current: Constraints): string {
+  return `Current brief:\n${JSON.stringify(current)}\n\nThe dictation:\n"""${text.slice(0, 6000)}"""`;
+}
+
 // ---------- Search planning ----------
 
 export const QUERY_SYSTEM = `You help student hackathon teams find real-world problems people complain about online.

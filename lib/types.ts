@@ -86,9 +86,31 @@ export interface Statement {
   whyItFits: string;
 }
 
+/** How a piece of text arrived: whole insertions (Wispr Flow) versus single keystrokes. */
+export interface Dictation {
+  /** Characters that arrived in multi-character insertions. */
+  chars: number;
+  /** Number of those insertions. */
+  bursts: number;
+  /** Characters typed one key at a time. */
+  keys: number;
+  /** Set on the saved demo run, which replays a dictation rather than receiving one. */
+  simulated?: boolean;
+}
+
+/** A phrase from a ramble and the brief value it became. */
+export interface Pulled {
+  field: keyof Constraints;
+  said: string;
+  became: string;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  dictation?: Dictation;
+  /** Set on a ramble, so the chat can show what each phrase became. */
+  pulled?: Pulled[];
 }
 
 export const EMPTY_CONSTRAINTS: Constraints = {

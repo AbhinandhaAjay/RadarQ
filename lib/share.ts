@@ -1,7 +1,7 @@
 // Packs a finished scan into the URL hash so teammates can open it without a backend.
 
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from "lz-string";
-import type { Comparison, Constraints, Issue, Mode, Post, SourceId, SourceStatus, Statement, Validation } from "./types";
+import type { Comparison, Constraints, Dictation, Issue, Mode, Post, SourceId, SourceStatus, Statement, Validation } from "./types";
 import { EMPTY_CONSTRAINTS } from "./types";
 
 export interface SharedResult {
@@ -15,6 +15,8 @@ export interface SharedResult {
   statements: Statement[];
   validation: Validation | null;
   comparison: Comparison | null;
+  /** How the brief arrived, so a shared pitch keeps its Wispr badge. */
+  dictation?: Dictation | null;
 }
 
 const PREFIX = "#r=";

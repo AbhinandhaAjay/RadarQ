@@ -277,8 +277,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .icon-btn:hover { border-color: var(--amber); color: var(--amber); }
 .icon-btn.send { background: var(--ember); border-color: var(--ember); color: #fff; }
 .icon-btn.send:disabled { opacity: .35; cursor: not-allowed; }
-.icon-btn.mic.listening { color: #fff; background: var(--ember); border-color: var(--ember); animation: micGlow 1.4s infinite; }
-@keyframes micGlow { 0% { box-shadow: 0 0 0 0 rgba(232, 87, 42, .5); } 70% { box-shadow: 0 0 0 12px rgba(232, 87, 42, 0); } 100% { box-shadow: 0 0 0 0 rgba(232, 87, 42, 0); } }
 
 /* Index card */
 .index-card { background-color: var(--paper-card); color: var(--ink); border-radius: 3px; padding: 18px 18px 14px; position: sticky; top: 96px; transform: rotate(0.6deg); box-shadow: 0 24px 50px rgba(10, 10, 10, .14); background-image: linear-gradient(to bottom, transparent 50px, rgba(232, 87, 42, .5) 50px, rgba(232, 87, 42, .5) 51px, transparent 51px), repeating-linear-gradient(to bottom, transparent 0 33px, rgba(57, 135, 229, .16) 33px 34px); background-position: 0 0, 0 52px; }
@@ -713,3 +711,70 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .verdict-banner { padding: 22px 18px; }
 }
 .compare .val-sec:first-child { grid-column: auto; }
+
+/* ---------- Wispr Flow: badges, ramble mode, hands-free commands ---------- */
+.wispr-badge { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; margin-top: 8px; padding: 4px 10px 4px 8px; border-radius: 999px; border: 1px solid rgba(232, 87, 42, .45); background: rgba(232, 87, 42, .08); font-family: var(--font-code); font-size: 11px; letter-spacing: .02em; color: var(--text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help; }
+.wispr-badge b { color: var(--ember); font-weight: 600; }
+.wispr-badge.sim { border-style: dashed; }
+.wispr-dot { width: 7px; height: 7px; flex: none; border-radius: 50%; background: var(--ember); box-shadow: 0 0 8px var(--ember); animation: blink 2s infinite; }
+.composer-hint .wispr-badge { margin-top: 0; }
+.card-wispr .wispr-badge { color: var(--ink-2); white-space: normal; }
+.stmt-top .wispr-badge { margin: 0 0 10px; }
+.results-head .wispr-badge { margin-top: 10px; }
+
+kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line-2); border-bottom-width: 2px; border-radius: 5px; background: var(--surface-2); font-family: var(--font-code); font-size: 11.5px; color: var(--text); }
+
+.term { position: relative; }
+.ramble { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; gap: 12px; padding: 20px; background: var(--bg); animation: rise .3s var(--ease) both; overflow-y: auto; }
+.ramble-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ramble-head .eyebrow { margin: 0 0 4px; color: var(--amber); }
+.ramble-head h3 { margin: 0; font-family: var(--font-display); font-weight: 600; letter-spacing: -0.03em; font-size: 26px; color: var(--text); }
+.ramble-head .hand { font-size: 20px; margin-left: 6px; }
+.ramble-how { margin: 0; font-size: 14px; color: var(--text-2); max-width: 620px; }
+.ramble-prompts { display: flex; flex-wrap: wrap; gap: 6px; }
+.ramble-prompts span { font-size: 12.5px; padding: 4px 10px; border-radius: 999px; border: 1px dashed var(--line-2); color: var(--muted); }
+.ramble textarea { flex: 1; min-height: 150px; width: 100%; resize: none; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--amber); background: var(--bg-2); color: var(--text); outline: none; font-size: 16px; line-height: 1.55; box-shadow: 0 0 0 4px rgba(242, 163, 58, .1); }
+.ramble textarea::placeholder { color: var(--muted); }
+.ramble-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.ramble-bar .wispr-badge { margin: 0; }
+.ramble-bar .btn { margin-left: auto; }
+.ramble-meter { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font-size: 13px; }
+.ramble-track { width: 120px; height: 6px; border-radius: 999px; background: var(--line-2); overflow: hidden; }
+.ramble-track span { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--ember)); transform-origin: left; transition: transform .4s var(--ease); }
+
+.ramble-btn { display: inline-flex; align-items: center; gap: 8px; height: 46px; padding: 0 16px; flex: none; border-radius: 8px; border: 1px solid var(--ember); background: rgba(232, 87, 42, .12); color: var(--text); font-weight: 500; font-size: 14px; cursor: pointer; transition: background .2s var(--ease); }
+.ramble-btn:hover { background: rgba(232, 87, 42, .24); }
+.ramble-btn .wave { color: var(--ember); }
+.chip.ramble-chip { border-color: var(--ember); color: var(--text); }
+
+.msg-body { min-width: 0; }
+.pulled { list-style: none; margin: 0 0 10px; padding: 10px 12px; display: grid; gap: 7px; border-radius: 10px; border: 1px solid var(--line); background: rgba(242, 163, 58, .05); }
+.pulled li { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 13.5px; animation: rise .35s var(--ease) both; }
+.pulled li:nth-child(2) { animation-delay: .06s; } .pulled li:nth-child(3) { animation-delay: .12s; } .pulled li:nth-child(4) { animation-delay: .18s; } .pulled li:nth-child(5) { animation-delay: .24s; } .pulled li:nth-child(n+6) { animation-delay: .3s; }
+.pulled .said { color: var(--muted); font-style: italic; }
+.pulled .arrow { color: var(--ember); }
+.pulled .became { color: var(--text); }
+.pulled .became b { display: inline-block; margin-right: 6px; font-family: var(--font-code); font-size: 10px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--amber); }
+
+.cmd-key { width: 46px; height: 46px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--ember); background: rgba(232, 87, 42, .12); color: var(--ember); }
+.cmd-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cmd-meta .wispr-badge { margin: 0; }
+.cmd-toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+.cmd-toggle input { accent-color: var(--ember); }
+.cmd-q .wispr-badge { margin: 0 0 0 6px; vertical-align: middle; }
+.cmd-group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.cmd-group-label { font-family: var(--font-code); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--amber); margin-left: 6px; }
+
+.demo-banner { border-color: var(--ember); }
+.error .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+@media (max-width: 640px) {
+  .ramble { padding: 16px; }
+  .ramble-bar .btn { margin-left: 0; width: 100%; }
+  .pulled li { grid-template-columns: 1fr; gap: 2px; }
+  .pulled .arrow { display: none; }
+  .ramble-btn { padding: 0 12px; }
+}
+.nav-wispr { flex: 1; min-width: 0; display: flex; justify-content: center; }
+.nav-wispr .wispr-badge { margin: 0; color: rgba(245, 244, 240, 0.78); }
+@media (max-width: 1020px) { .nav-wispr { display: none; } }

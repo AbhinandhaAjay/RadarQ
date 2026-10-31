@@ -1,4 +1,6 @@
+import type { Dictation } from "@/lib/types";
 import { RadarMark } from "./Radar";
+import WisprBadge from "./WisprBadge";
 
 export interface JourneyStep {
   label: string;
@@ -11,11 +13,14 @@ export default function JourneyNav({
   current,
   onGo,
   onHome,
+  dictation,
 }: {
   steps: JourneyStep[];
   current: number;
   onGo: (index: number) => void;
   onHome: () => void;
+  /** Everything dictated with Wispr Flow in this visit, measured from real input bursts. */
+  dictation?: Dictation;
 }) {
   return (
     <nav className="nav">
@@ -24,6 +29,9 @@ export default function JourneyNav({
           <RadarMark />
           <span>RadarQ</span>
         </button>
+        <span className="nav-wispr" aria-live="polite">
+          <WisprBadge d={dictation} prefix="Dictated this session" />
+        </span>
         <ol className="journey" aria-label="Progress">
           {steps.map((s, i) => {
             const state = i === current ? "now" : i < current ? "past" : s.enabled ? "ahead" : "locked";

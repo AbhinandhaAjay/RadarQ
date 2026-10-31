@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ChatMessage, Constraints, Mode } from "@/lib/types";
+import type { ChatMessage, Constraints, Dictation, Mode, Pulled } from "@/lib/types";
 import { CONSTRAINT_LABELS, EMPTY_CONSTRAINTS, isEmptyConstraints } from "@/lib/types";
 import { post, type RecentSearch } from "@/lib/client";
-import VoiceButton from "./VoiceButton";
+import { isWispr, useDictation } from "@/lib/wispr";
 import CountControl from "./CountControl";
+import RamblePanel from "./RamblePanel";
+import WisprBadge from "./WisprBadge";
 
 const THEMES = ["Health", "Education", "Climate", "Small business", "Students", "Productivity", "FinTech", "Accessibility", "Agriculture", "Mental health"];
 
@@ -63,6 +65,21 @@ export const WELCOME: Record<Mode, ChatMessage> = {
 
 const MODE_LABELS: Partial<Record<keyof Constraints, string>> = { idea: "Idea A", ideaB: "Idea B", notes: "Why you're building" };
 
+/** Without the AI, keep what was said in the notes so the scan can still run. */
+function keepInNotes(brief: Constraints, said: string): Constraints {
+  const notes = [brief.notes, said.trim().slice(0, 400)].filter(Boolean).join(" · ");
+  return { ...brief, notes };
+}
+
+/** Phrases in the order they were said, so the map reads top to bottom like the ramble. */
+function inSpokenOrder(pulled: Pulled[], text: string): Pulled[] {
+  const at = (p: Pulled) => {
+    const i = text.toLowerCase().indexOf(p.said.toLowerCase());
+    return i < 0 ? Infinity : i;
+  };
+  return [...pulled].sort((a, b) => at(a) - at(b));
+}
+
 export default function BriefChat({
   mode,
   setMode,
@@ -77,7 +94,9 @@ export default function BriefChat({
   recent,
   onLaunch,
   notify,
-  onExample,
+  onDemo,
+  dictation,
+  onDictated,
 }: {
   mode: Mode;
   setMode: (m: Mode) => void;
@@ -92,14 +111,17 @@ export default function BriefChat({
   recent: RecentSearch[];
   onLaunch: (brief: Constraints, mode: Mode) => void;
   notify: (msg: string) => void;
-  onExample: () => void;
+  onDemo: () => void;
+  /** Everything dictated into this brief so far. */
+  dictation: Dictation;
+  onDictated: (d: Dictation) => void;
 }) {
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
-  const [listening, setListening] = useState(false);
   const [flash, setFlash] = useState<Set<string>>(new Set());
-  const [voiceStatus, setVoiceStatus] = useState<{ text: string; tone: "info" | "error" } | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [rambling, setRambling] = useState(false);
+  const typed = useDictation();
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -121,12 +143,14 @@ export default function BriefChat({
     setTimeout(() => setFlash(new Set()), 1600);
   }
 
-  async function send(text: string) {
+  async function send(text: string, d?: Dictation) {
     const content = text.trim();
     if (!content || thinking) return;
-    const next = [...messages, { role: "user" as const, content }];
+    const next: ChatMessage[] = [...messages, { role: "user", content, dictation: isWispr(d) ? d : undefined }];
+    if (d) onDictated(d);
     setMessages(next);
     setInput("");
+    typed.reset();
     setThinking(true);
     try {
       const res = await post<{ brief: Constraints; reply: string; usedLink: boolean }>("/api/brief", { messages: next, brief, mode });
@@ -135,9 +159,41 @@ export default function BriefChat({
       flashKeys(changed);
       setMessages([...next, { role: "assistant", content: res.reply }]);
       if (res.usedLink && changed.length) notify(`Read the page and filled ${changed.length} fields`);
-    } catch (err) {
-      setMessages([...next, { role: "assistant", content: `I couldn't process that (${(err as Error).message}). You can still edit the card directly and start the scan.` }]);
+    } catch {
+      setBrief(keepInNotes(brief, content));
+      flashKeys(["notes"]);
+      setMessages([
+        ...next,
+        { role: "assistant", content: "The AI is busy right now, so I saved what you said in Notes. You can still start the scan, edit the card, or press ▶ Play the demo." },
+      ]);
     } finally {
+      setThinking(false);
+    }
+  }
+
+  /** A long Wispr dictation becomes the whole brief in one go. */
+  async function ramble(text: string, d: Dictation) {
+    const content = text.trim();
+    if (!content || thinking) return;
+    const next: ChatMessage[] = [...messages, { role: "user", content, dictation: isWispr(d) ? d : undefined }];
+    onDictated(d);
+    setMessages(next);
+    setThinking(true);
+    try {
+      const res = await post<{ brief: Constraints; pulled: Pulled[]; reply: string }>("/api/ramble", { text: content, brief, mode });
+      const changed = (Object.keys(EMPTY_CONSTRAINTS) as (keyof Constraints)[]).filter((k) => res.brief[k] !== brief[k]);
+      setBrief(res.brief);
+      flashKeys(changed);
+      setMessages([...next, { role: "assistant", content: res.reply, pulled: inSpokenOrder(res.pulled, content) }]);
+    } catch {
+      setBrief(keepInNotes(brief, content));
+      flashKeys(["notes"]);
+      setMessages([
+        ...next,
+        { role: "assistant", content: "The AI is busy right now, so I kept your ramble in Notes. You can start the scan with it as is, or try again in a minute." },
+      ]);
+    } finally {
+      setRambling(false);
       setThinking(false);
     }
   }
@@ -168,11 +224,12 @@ export default function BriefChat({
           <button role="tab" aria-selected={mode === "validate"} className={mode === "validate" ? "on" : ""} onClick={() => setMode("validate")}>Validate my idea</button>
           <button role="tab" aria-selected={mode === "compare"} className={mode === "compare" ? "on" : ""} onClick={() => setMode("compare")}>Compare two ideas</button>
         </div>
-        <button className="btn link small brief-example" onClick={onExample}>See an example run →</button>
+        <button className="btn small brief-example" onClick={onDemo}>▶ Play the demo</button>
       </div>
 
       <div className="brief">
         <div className="term ember-stage">
+          {rambling && <RamblePanel mode={mode} busy={thinking} onSubmit={ramble} onClose={() => setRambling(false)} />}
           <div className="term-head">
             <span className="term-dots" aria-hidden="true"><i /><i /><i /></span>
             <span className="term-title">radar assistant</span>
@@ -182,7 +239,21 @@ export default function BriefChat({
             {messages.map((m, i) => (
               <div key={i} className={`msg ${m.role}`}>
                 <span className="who">{m.role === "assistant" ? "radar" : "you"}</span>
-                <p>{m.content}</p>
+                <div className="msg-body">
+                  {m.pulled && m.pulled.length > 0 && (
+                    <ol className="pulled" aria-label="What you said, and what it became">
+                      {m.pulled.map((p, j) => (
+                        <li key={j}>
+                          <span className="said">“{p.said}”</span>
+                          <span className="arrow" aria-hidden="true">→</span>
+                          <span className="became"><b>{labelOf(p.field)}</b> {p.became}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  <p>{m.content}</p>
+                  {m.dictation && <WisprBadge d={m.dictation} />}
+                </div>
               </div>
             ))}
             {thinking && (
@@ -194,36 +265,31 @@ export default function BriefChat({
           </div>
           {messages.length <= 1 && !input && (
             <div className="suggest">
+              <button className="chip ramble-chip" onClick={() => setRambling(true)}>🎙 Ramble for a minute instead</button>
               {STARTERS[mode].map((s) => (
                 <button key={s.label} className="chip" onClick={() => send(s.text)}>{s.label}</button>
               ))}
-            </div>
-          )}
-          {(listening || voiceStatus) && (
-            <div className={`listening-note ${voiceStatus?.tone === "error" ? "error" : ""}`} role="status">
-              {listening && <span className="wave" aria-hidden="true"><i /><i /><i /><i /></span>}
-              <span>{voiceStatus?.text ?? "Listening…"}</span>
-              {!listening && (
-                <button type="button" className="note-dismiss" onClick={() => setVoiceStatus(null)} aria-label="Dismiss">×</button>
-              )}
             </div>
           )}
           <form
             className={`composer ${expanded ? "expanded" : ""}`}
             onSubmit={(e) => {
               e.preventDefault();
-              send(input);
+              send(input, typed.stats);
             }}
           >
             <textarea
               ref={inputRef}
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                typed.onInput(input, e.target.value, e.nativeEvent);
+                setInput(e.target.value);
+              }}
               onKeyDown={(e) => {
                 const sendKey = expanded ? e.key === "Enter" && (e.ctrlKey || e.metaKey) : e.key === "Enter" && !e.shiftKey;
                 if (sendKey) {
                   e.preventDefault();
-                  send(input);
+                  send(input, typed.stats);
                 }
               }}
               placeholder={
@@ -237,14 +303,16 @@ export default function BriefChat({
               aria-label="Message the radar assistant"
             />
             <div className="composer-bar">
-              <VoiceButton
-                onTranscript={setInput}
-                onDone={(t) => send(t)}
-                onListeningChange={setListening}
-                onStatus={setVoiceStatus}
-              />
+              <button type="button" className="ramble-btn" onClick={() => setRambling(true)} title="Hold your Wispr key and talk for a minute">
+                <span className="wave" aria-hidden="true"><i /><i /><i /><i /></span>
+                Ramble
+              </button>
               <span className="composer-hint">
-                {expanded ? "Ctrl + Enter to send" : "Enter to send · Shift + Enter for a new line"} · Wispr Flow works here too
+                {isWispr(typed.stats) ? (
+                  <WisprBadge d={typed.stats} />
+                ) : (
+                  <>Hold your Wispr key and talk · {expanded ? "Ctrl + Enter to send" : "Enter to send"}</>
+                )}
               </span>
               <button
                 type="button"
@@ -286,6 +354,11 @@ export default function BriefChat({
               </div>
             ))}
           </div>
+          {isWispr(dictation) && (
+            <div className="card-wispr">
+              <WisprBadge d={dictation} prefix="Brief dictated with Wispr" />
+            </div>
+          )}
           {!empty && (
             <button className="btn link small" onClick={() => setBrief(EMPTY_CONSTRAINTS)}>Clear card</button>
           )}
