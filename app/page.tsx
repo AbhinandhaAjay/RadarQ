@@ -8,7 +8,6 @@ import { decodeShare, encodeShare } from "@/lib/share";
 import { evidenceStrength } from "@/lib/evidence";
 import type { CommandRow } from "@/lib/prompts";
 import JourneyNav from "./components/JourneyNav";
-import Hero from "./components/Hero";
 import { FooterCard, Overheard, Practices, SourceMarquee } from "./components/HomeSections";
 import BriefChat, { WELCOME } from "./components/BriefChat";
 import ScanView, { type ScanStage } from "./components/ScanView";
@@ -567,14 +566,12 @@ export default function Home() {
 
   return (
     <>
-      {view !== "home" && (
-        <JourneyNav
-          steps={steps}
-          current={current}
-          onHome={() => go("home")}
-          onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
-        />
-      )}
+      <JourneyNav
+        steps={steps}
+        current={current}
+        onHome={() => go("home")}
+        onGo={(i) => (steps[i].view === "home" ? goBrief() : go(steps[i].view))}
+      />
 
       <div className="toasts" aria-live="polite">
         {toasts.map((t) => (
@@ -594,19 +591,7 @@ export default function Home() {
       <main className={`app-main ${view === "home" ? "is-home" : ""} ${shared ? "has-banner" : ""}`}>
         {view === "home" && (
           <div className="view" key="home">
-            <Hero
-              onStart={() => {
-                setMode("find");
-                goBrief();
-              }}
-              onValidate={() => {
-                setMode("validate");
-                goBrief();
-              }}
-              onExample={() => launch(EXAMPLE, "find")}
-            />
             <div className="wrap">
-            <SourceMarquee />
             {error && (
               <div className="error" role="alert">
                 <span>{error}</span>
@@ -627,7 +612,9 @@ export default function Home() {
               recent={recent}
               onLaunch={launch}
               notify={notify}
+              onExample={() => launch(EXAMPLE, "find")}
             />
+            <SourceMarquee />
             <Overheard />
             <Practices />
             </div>

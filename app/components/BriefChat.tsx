@@ -77,6 +77,7 @@ export default function BriefChat({
   recent,
   onLaunch,
   notify,
+  onExample,
 }: {
   mode: Mode;
   setMode: (m: Mode) => void;
@@ -91,6 +92,7 @@ export default function BriefChat({
   recent: RecentSearch[];
   onLaunch: (brief: Constraints, mode: Mode) => void;
   notify: (msg: string) => void;
+  onExample: () => void;
 }) {
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
@@ -166,6 +168,7 @@ export default function BriefChat({
           <button role="tab" aria-selected={mode === "validate"} className={mode === "validate" ? "on" : ""} onClick={() => setMode("validate")}>Validate my idea</button>
           <button role="tab" aria-selected={mode === "compare"} className={mode === "compare" ? "on" : ""} onClick={() => setMode("compare")}>Compare two ideas</button>
         </div>
+        <button className="btn link small brief-example" onClick={onExample}>See an example run →</button>
       </div>
 
       <div className="brief">
