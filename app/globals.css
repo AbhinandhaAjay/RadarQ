@@ -784,27 +784,37 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line-2); 
   .ramble-btn { padding: 0 12px; }
 }
 
-/* Nav: a compact capsule sized to its contents. The .nav .wrap reset above strips padding,
-   so these rules use matching specificity. */
-.nav { width: fit-content; max-width: calc(100% - 32px); }
-.nav .nav-inner { display: flex; align-items: center; gap: 4px; height: 58px; padding: 0 8px 0 18px; border-radius: 999px; background: linear-gradient(180deg, rgba(26, 21, 18, 0.95), rgba(12, 11, 10, 0.95)); box-shadow: inset 0 1px 0 rgba(245, 244, 240, 0.07), 0 0 0 1px rgba(232, 87, 42, 0.14), 0 18px 44px rgba(0, 0, 0, 0.26); }
-.nav .brand { font-size: 16px; gap: 10px; }
-.nav .brand-mark { width: 28px; height: 28px; }
-.nav-sep { width: 1px; height: 22px; margin: 0 12px; background: rgba(245, 244, 240, 0.12); flex: none; }
-.nav .jdot { width: 24px; height: 24px; font-size: 10px; }
-.nav .jlink { width: 28px; }
-.nav .jstop.locked .jnode { color: rgba(245, 244, 240, 0.42); }
-.nav .nav-wispr { display: flex; margin-right: 8px; }
+/* Nav: a full-width bar in the brief card's warm ink brown.
+   The .nav .wrap reset above strips padding, so these rules use matching specificity. */
+.nav .nav-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px; height: 64px; padding: 0 12px 0 22px; border-radius: 16px; color: #f5ead8; background: radial-gradient(520px 90px at 50% 0%, rgba(232, 87, 42, 0.16), transparent 70%), linear-gradient(180deg, #33261a, #22180f); border: 1px solid rgba(242, 163, 58, 0.16); box-shadow: 0 1px 0 rgba(255, 236, 210, 0.08) inset, 0 14px 34px rgba(34, 24, 15, 0.28); backdrop-filter: none; position: relative; overflow: hidden; }
+.nav .nav-inner::after { content: ""; position: absolute; left: 22px; right: 22px; bottom: 0; height: 2px; border-radius: 2px; background: linear-gradient(90deg, transparent, var(--ember) 30%, var(--amber) 70%, transparent); opacity: .7; }
+.nav .brand { justify-self: start; color: #f5ead8; font-size: 17px; gap: 10px; }
+.nav .brand-mark { width: 28px; height: 28px; --amber: #f2a33a; }
+.nav-tag { font-family: var(--font-script); font-weight: 600; font-size: 19px; color: #f2a33a; margin-left: 6px; letter-spacing: 0; white-space: nowrap; }
+.nav .journey { justify-self: center; }
+.nav .jlink { width: 34px; background: rgba(245, 234, 216, 0.18); }
+.nav .jnode { color: rgba(245, 234, 216, 0.5); }
+.nav .jlabel { font-size: 13.5px; }
+.nav .jdot { width: 24px; height: 24px; font-size: 10px; border-color: rgba(245, 234, 216, 0.25); }
+.nav .jstop.now .jnode { color: #fff7ea; font-weight: 600; }
+.nav .jstop.past .jnode, .nav .jstop.ahead .jnode { color: rgba(245, 234, 216, 0.82); }
+.nav .jstop.past .jnode:hover, .nav .jstop.ahead .jnode:hover { background: rgba(245, 234, 216, 0.08); }
+.nav .jstop.past .jdot { border-color: var(--amber); color: var(--amber); }
+.nav-end { justify-self: end; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.nav .nav-wispr .wispr-badge { margin: 0; color: rgba(245, 234, 216, 0.8); }
 .nav-demo { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--ember); color: #fff; font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: 0 0 22px rgba(232, 87, 42, 0.45); transition: transform .2s var(--ease), box-shadow .2s var(--ease); white-space: nowrap; }
-.nav-demo:hover { transform: translateY(-1px); box-shadow: 0 0 30px rgba(232, 87, 42, 0.65); }
+.nav-demo:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(232, 87, 42, 0.45); }
 .nav-demo > span:first-child { font-size: 10px; }
-@media (max-width: 1020px) { .nav .nav-wispr { display: none; } }
+@media (max-width: 1280px) { .nav-tag { display: none; } }
+@media (max-width: 1020px) {
+  .nav .nav-inner { grid-template-columns: auto 1fr auto; }
+  .nav .nav-wispr { display: none; }
+}
 @media (max-width: 640px) {
-  .nav .nav-inner { height: 52px; padding: 0 6px 0 12px; }
-  .nav-sep { margin: 0 6px; }
+  .nav .nav-inner { height: 56px; padding: 0 8px 0 12px; gap: 8px; }
+  .nav .jlink { width: 10px; }
   .nav-demo { width: 38px; height: 38px; padding: 0; justify-content: center; }
   .nav-demo-label { display: none; }
-  .nav .jlink { width: 10px; }
 }
 @media (max-width: 640px) {
   .brief-head .segmented { max-width: 100%; overflow-x: auto; scrollbar-width: none; }

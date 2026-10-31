@@ -31,8 +31,8 @@ export default function JourneyNav({
         <button className="brand" onClick={onHome} aria-label="RadarQ home">
           <RadarMark />
           <span>RadarQ</span>
+          <span className="nav-tag">Stop guessing. Start listening.</span>
         </button>
-        <span className="nav-sep" aria-hidden="true" />
         <ol className="journey" aria-label="Progress">
           {steps.map((s, i) => {
             const state = i === current ? "now" : i < current ? "past" : s.enabled ? "ahead" : "locked";
@@ -57,15 +57,16 @@ export default function JourneyNav({
             );
           })}
         </ol>
-        <span className="nav-sep" aria-hidden="true" />
-        {isWispr(dictation) && (
-          <span className="nav-wispr" aria-live="polite">
-            <WisprBadge d={dictation} prefix="Dictated" />
-          </span>
-        )}
-        <button className="nav-demo" onClick={onDemo} title="Replay a saved real run, no typing needed" aria-label="Play demo">
+        <span className="nav-end">
+          {isWispr(dictation) && (
+            <span className="nav-wispr" aria-live="polite">
+              <WisprBadge d={dictation} prefix="Dictated" />
+            </span>
+          )}
+          <button className="nav-demo" onClick={onDemo} title="Replay a saved real run, no typing needed" aria-label="Play demo">
           <span aria-hidden="true">▶</span> <span className="nav-demo-label">Play demo</span>
         </button>
+        </span>
       </div>
     </nav>
   );
