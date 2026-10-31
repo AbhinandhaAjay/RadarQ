@@ -17,7 +17,8 @@ export async function POST(req: Request) {
     if (!issues?.length) {
       return NextResponse.json({ error: "Select at least one issue first." }, { status: 400 });
     }
-    const count = statementCount ? Math.min(6, Math.max(1, Math.round(statementCount))) : 3;
+    // "Auto" means one pitch sheet per chosen issue.
+    const count = Math.min(6, Math.max(1, Math.round(statementCount || issues.length)));
     const ai = await chatJSON<{ statements?: Partial<Statement>[] }>(
       statementSystem(count),
       statementUser(constraints, issues.slice(0, 8)),

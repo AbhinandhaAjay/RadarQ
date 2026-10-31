@@ -925,7 +925,7 @@ export default function Home() {
             </header>
             <section className="statements">
               {generating
-                ? Array.from({ length: statementCount ?? 3 }, (_, i) => (
+                ? Array.from({ length: statementCount ?? Math.min(6, Math.max(1, pitchBasis)) }, (_, i) => (
                     <div key={i} className="stmt skeleton-sheet">
                       <div className="skeleton" style={{ height: 12, width: 120 }} />
                       <div className="skeleton" style={{ height: 34, width: "40%" }} />

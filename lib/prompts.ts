@@ -155,6 +155,7 @@ export function statementSystem(count: number): string {
 Given the team's constraints and the issues they selected, write exactly ${count} distinct problem statement${count === 1 ? "" : "s"}.
 Rules:
 - Base every statement only on the selected issues and their quotes. Do not invent statistics.
+- When the count equals the number of selected issues, write one statement per issue, in the order given.
 - name: a catchy, memorable project name (1 to 3 words).
 - pitch: a one-line elevator pitch, under 20 words.
 - The proposed solution must be buildable by this team in their time and track (respect no-code vs code and their tech stack).
