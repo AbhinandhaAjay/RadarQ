@@ -805,7 +805,8 @@ kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--line-2); 
 .nav-demo { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 18px; border-radius: 999px; border: 0; background: var(--ember); color: #fff; font-weight: 600; font-size: 13.5px; cursor: pointer; box-shadow: 0 0 22px rgba(232, 87, 42, 0.45); transition: transform .2s var(--ease), box-shadow .2s var(--ease); white-space: nowrap; }
 .nav-demo:hover { transform: translateY(-1px); box-shadow: 0 10px 24px rgba(232, 87, 42, 0.45); }
 .nav-demo > span:first-child { font-size: 10px; }
-@media (max-width: 1280px) { .nav-tag { display: none; } }
+@media (max-width: 1360px) { .nav-tag { font-size: 16px; } .nav .jlink { width: 22px; } }
+@media (max-width: 1100px) { .nav-tag { display: none; } }
 @media (max-width: 1020px) {
   .nav .nav-inner { grid-template-columns: auto 1fr auto; }
   .nav .nav-wispr { display: none; }
